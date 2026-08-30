@@ -38,10 +38,24 @@ if (!file_exists($targetDb) || filesize($targetDb) === 0) {
 }
 @chmod($targetDb, 0777);
 
-// 3. Set environment variables for serverless runtime
-$envVars = [
+// 3. Set and sanitize environment variables for serverless runtime
+$defaults = [
+    'APP_NAME' => 'AI Hub',
     'APP_ENV' => 'production',
-    'APP_DEBUG' => 'true',
+    'APP_DEBUG' => 'false',
+    'APP_KEY' => 'base64:cq8LiyvFB1sD9PuGU7KdFKmGEBVlmIpCDbwXUmyjRto=',
+    'APP_URL' => 'http://localhost',
+    'DB_CONNECTION' => 'sqlite',
+    'DB_DATABASE' => $targetDb,
+    'SESSION_DRIVER' => 'cookie',
+    'SESSION_LIFETIME' => '120',
+    'CACHE_STORE' => 'array',
+    'CACHE_DRIVER' => 'array',
+    'LOG_CHANNEL' => 'stderr',
+    'QUEUE_CONNECTION' => 'sync',
+    'BROADCAST_CONNECTION' => 'log',
+    'FILESYSTEM_DISK' => 'local',
+    'MAIL_MAILER' => 'log',
     'APP_STORAGE' => '/tmp/storage',
     'VIEW_COMPILED_PATH' => '/tmp/storage/framework/views',
     'APP_CONFIG_CACHE' => '/tmp/storage/bootstrap/cache/config.php',
@@ -49,21 +63,19 @@ $envVars = [
     'APP_PACKAGES_CACHE' => '/tmp/storage/bootstrap/cache/packages.php',
     'APP_ROUTES_CACHE' => '/tmp/storage/bootstrap/cache/routes.php',
     'APP_SERVICES_CACHE' => '/tmp/storage/bootstrap/cache/services.php',
-    'SESSION_DRIVER' => 'cookie',
-    'CACHE_STORE' => 'array',
-    'LOG_CHANNEL' => 'stderr',
-    'DB_CONNECTION' => 'sqlite',
-    'DB_DATABASE' => $targetDb,
 ];
 
-if (!getenv('APP_KEY') && !isset($_ENV['APP_KEY'])) {
-    $envVars['APP_KEY'] = 'base64:cq8LiyvFB1sD9PuGU7KdFKmGEBVlmIpCDbwXUmyjRto=';
-}
-
-foreach ($envVars as $key => $val) {
-    putenv("{$key}={$val}");
-    $_ENV[$key] = $val;
-    $_SERVER[$key] = $val;
+foreach ($defaults as $key => $defaultVal) {
+    $current = getenv($key);
+    if ($current === false || trim((string)$current) === '') {
+        putenv("{$key}={$defaultVal}");
+        $_ENV[$key] = $defaultVal;
+        $_SERVER[$key] = $defaultVal;
+    } else {
+        putenv("{$key}={$current}");
+        $_ENV[$key] = $current;
+        $_SERVER[$key] = $current;
+    }
 }
 
 if (!defined('LARAVEL_START')) {
