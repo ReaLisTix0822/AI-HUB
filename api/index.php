@@ -83,6 +83,11 @@ foreach ($defaults as $key => $defaultVal) {
     }
 }
 
+if ((isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') || (isset($_SERVER['HTTP_X_FORWARDED_PORT']) && $_SERVER['HTTP_X_FORWARDED_PORT'] === '443')) {
+    $_SERVER['HTTPS'] = 'on';
+    putenv('HTTPS=on');
+}
+
 if (!defined('LARAVEL_START')) {
     define('LARAVEL_START', microtime(true));
 }
