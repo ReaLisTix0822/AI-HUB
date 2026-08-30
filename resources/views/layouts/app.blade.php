@@ -289,7 +289,7 @@
                     <div class="w-6 h-6 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-bold text-[10px]">
                         AI
                     </div>
-                    <span>AI Hub Directory — พัฒนาด้วย Laravel & Tailwind CSS</span>
+                    <span>AI Hub Directory — Jirapat Zxck</span>
                 </div>
                 <div class="flex items-center gap-4">
                     <span>โทนขาว-ดำ Minimalist Monochrome</span>
