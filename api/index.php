@@ -35,6 +35,9 @@ if (!file_exists($targetDb) || filesize($targetDb) === 0) {
 }
 
 // 3. Set environment variables for serverless runtime
+if (!getenv('APP_KEY') && !isset($_ENV['APP_KEY'])) {
+    putenv('APP_KEY=base64:cq8LiyvFB1sD9PuGU7KdFKmGEBVlmIpCDbwXUmyjRto=');
+}
 putenv('APP_STORAGE=/tmp/storage');
 putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
 putenv('APP_CONFIG_CACHE=/tmp/storage/bootstrap/cache/config.php');
