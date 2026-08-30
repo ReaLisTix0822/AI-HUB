@@ -42,7 +42,7 @@ if (!file_exists($targetDb) || filesize($targetDb) === 0) {
 $defaults = [
     'APP_NAME' => 'AI Hub',
     'APP_ENV' => 'production',
-    'APP_DEBUG' => 'false',
+    'APP_DEBUG' => 'true',
     'APP_KEY' => 'base64:cq8LiyvFB1sD9PuGU7KdFKmGEBVlmIpCDbwXUmyjRto=',
     'APP_URL' => 'http://localhost',
     'DB_CONNECTION' => 'sqlite',
