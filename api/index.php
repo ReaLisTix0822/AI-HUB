@@ -39,23 +39,32 @@ if (!file_exists($targetDb) || filesize($targetDb) === 0) {
 @chmod($targetDb, 0777);
 
 // 3. Set environment variables for serverless runtime
+$envVars = [
+    'APP_ENV' => 'production',
+    'APP_DEBUG' => 'true',
+    'APP_STORAGE' => '/tmp/storage',
+    'VIEW_COMPILED_PATH' => '/tmp/storage/framework/views',
+    'APP_CONFIG_CACHE' => '/tmp/storage/bootstrap/cache/config.php',
+    'APP_EVENTS_CACHE' => '/tmp/storage/bootstrap/cache/events.php',
+    'APP_PACKAGES_CACHE' => '/tmp/storage/bootstrap/cache/packages.php',
+    'APP_ROUTES_CACHE' => '/tmp/storage/bootstrap/cache/routes.php',
+    'APP_SERVICES_CACHE' => '/tmp/storage/bootstrap/cache/services.php',
+    'SESSION_DRIVER' => 'cookie',
+    'CACHE_STORE' => 'array',
+    'LOG_CHANNEL' => 'stderr',
+    'DB_CONNECTION' => 'sqlite',
+    'DB_DATABASE' => $targetDb,
+];
+
 if (!getenv('APP_KEY') && !isset($_ENV['APP_KEY'])) {
-    putenv('APP_KEY=base64:cq8LiyvFB1sD9PuGU7KdFKmGEBVlmIpCDbwXUmyjRto=');
+    $envVars['APP_KEY'] = 'base64:cq8LiyvFB1sD9PuGU7KdFKmGEBVlmIpCDbwXUmyjRto=';
 }
-putenv('APP_ENV=production');
-putenv('APP_DEBUG=true');
-putenv('APP_STORAGE=/tmp/storage');
-putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
-putenv('APP_CONFIG_CACHE=/tmp/storage/bootstrap/cache/config.php');
-putenv('APP_EVENTS_CACHE=/tmp/storage/bootstrap/cache/events.php');
-putenv('APP_PACKAGES_CACHE=/tmp/storage/bootstrap/cache/packages.php');
-putenv('APP_ROUTES_CACHE=/tmp/storage/bootstrap/cache/routes.php');
-putenv('APP_SERVICES_CACHE=/tmp/storage/bootstrap/cache/services.php');
-putenv('SESSION_DRIVER=cookie');
-putenv('CACHE_STORE=array');
-putenv('LOG_CHANNEL=stderr');
-putenv("DB_DATABASE={$targetDb}");
-putenv('DB_CONNECTION=sqlite');
+
+foreach ($envVars as $key => $val) {
+    putenv("{$key}={$val}");
+    $_ENV[$key] = $val;
+    $_SERVER[$key] = $val;
+}
 
 if (!defined('LARAVEL_START')) {
     define('LARAVEL_START', microtime(true));
@@ -81,8 +90,19 @@ try {
         }
     }
 } catch (\Throwable $e) {
-    // Continue if PDO check errors
+    error_log("SQLite Pre-check warning: " . $e->getMessage());
 }
 
-// 6. Handle HTTP Request
-$app->handleRequest(Request::capture());
+// 6. Handle HTTP Request with Error Catching
+try {
+    $app->handleRequest(Request::capture());
+} catch (\Throwable $e) {
+    http_response_code(500);
+    echo "<div style='font-family: sans-serif; padding: 20px; background: #fff; color: #111;'>";
+    echo "<h2 style='color: #e11d48;'>Laravel Serverless Exception</h2>";
+    echo "<p><b>Message:</b> " . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "<p><b>File:</b> " . htmlspecialchars($e->getFile()) . " on line <b>" . $e->getLine() . "</b></p>";
+    echo "<pre style='background: #f4f4f5; padding: 15px; border-radius: 8px; overflow: auto;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    echo "</div>";
+    error_log("Exception: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+}
